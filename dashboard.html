@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HVI Dashboard – Heckenstruktur & Habitateignung</title>
+<style>
+  :root{
+    --navy:#1f3a2e; --green:#2e6b4f; --green2:#4a9d76; --leaf:#8fce9f;
+    --bg:#f5f7f4; --card:#ffffff; --ink:#1d241f; --muted:#6a7269;
+    --grid:#e4eae2; --warn:#c96a2e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 22px 60px}
+  header h1{font-size:26px;color:var(--navy);margin:0 0 4px}
+  header p{color:var(--muted);margin:0;font-size:14px}
+  .rule{height:3px;background:linear-gradient(90deg,var(--green),var(--leaf));border-radius:3px;margin:16px 0 26px}
+  .grid{display:grid;gap:20px}
+  @media(min-width:760px){.two{grid-template-columns:1fr 1fr}}
+  .card{background:var(--card);border:1px solid var(--grid);border-radius:14px;
+    padding:18px 20px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .card h2{font-size:15px;margin:0 0 2px;color:var(--green)}
+  .card .sub{font-size:12.5px;color:var(--muted);margin:0 0 16px}
+  /* bars */
+  .row{display:flex;align-items:center;gap:10px;margin:9px 0}
+  .row .lab{flex:0 0 132px;font-size:12.5px;color:var(--ink);text-align:right}
+  .bar{flex:1;background:var(--grid);border-radius:7px;height:22px;position:relative;overflow:hidden}
+  .bar>span{position:absolute;left:0;top:0;bottom:0;border-radius:7px;
+    background:linear-gradient(90deg,var(--green),var(--green2));transition:width .8s cubic-bezier(.22,1,.36,1)}
+  .bar>b{position:absolute;right:8px;top:0;bottom:0;display:flex;align-items:center;
+    font-size:11.5px;font-weight:600;color:var(--navy)}
+  .val-in{color:#fff !important;right:auto;left:8px}
+  /* grouped subindex bars */
+  .sub-legend{display:flex;flex-wrap:wrap;gap:12px;margin:2px 0 14px;font-size:12px;color:var(--muted)}
+  .chip{display:inline-flex;align-items:center;gap:6px}
+  .sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+  .gbar{display:flex;height:14px;border-radius:5px;overflow:hidden;background:var(--grid);margin:4px 0}
+  .gbar>i{height:100%;transition:width .8s cubic-bezier(.22,1,.36,1)}
+  .gname{font-size:12.5px;margin:12px 0 2px;font-weight:600}
+  /* heatmap */
+  table{border-collapse:collapse;width:100%;font-size:12px}
+  th,td{padding:7px 8px;text-align:center;border:1px solid var(--grid)}
+  th{background:var(--green);color:#fff;font-weight:600;font-size:11.5px}
+  th.rowh,td.rowh{background:#eef3ec;color:var(--ink);text-align:right;font-weight:600;white-space:nowrap}
+  .cell{color:#13291f;font-weight:600;border-radius:0}
+  .best{outline:2px solid var(--navy);outline-offset:-2px}
+  .metrics td,.metrics th{font-size:11.5px;text-align:right}
+  .metrics td.rowh{text-align:right}
+  .foot{color:var(--muted);font-size:12px;margin-top:22px}
+  .tag{display:inline-block;background:#eef3ec;color:var(--green);border-radius:20px;
+    padding:2px 10px;font-size:11px;font-weight:600;margin-left:6px}
+  .best-badge{font-size:11px;color:var(--muted)}
+  /* info box */
+  .info details{border-top:1px solid var(--grid);padding:6px 0}
+  .info details[open]{padding-bottom:6px}
+  .info summary{cursor:pointer;font-weight:600;font-size:13.5px;color:var(--navy);padding:8px 0;list-style:none}
+  .info summary::-webkit-details-marker{display:none}
+  .info summary::before{content:"▸";color:var(--green2);margin-right:8px;display:inline-block;transition:transform .2s}
+  .info details[open] summary::before{transform:rotate(90deg)}
+  dl.gloss{margin:4px 0 6px;display:grid;gap:10px}
+  @media(min-width:720px){dl.gloss{grid-template-columns:1fr 1fr;gap:10px 26px}}
+  dl.gloss dt{font-weight:700;color:var(--green);font-size:12.5px;margin-bottom:1px}
+  dl.gloss dd{margin:0;font-size:12.5px;color:var(--ink)}
+  dl.gloss .rng{font-weight:600;color:var(--muted);font-size:11px;
+    background:#eef3ec;border-radius:10px;padding:1px 7px;margin-left:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Hedge Vertical Index — Ergebnis-Dashboard</h1>
+    <p>Demo-Lauf (vier synthetische Heckenstrukturen) · Struktur-Komplexität, Subindizes & artspezifische Habitateignung</p>
+  </header>
+  <div class="rule"></div>
+
+  <div class="grid two">
+    <div class="card">
+      <h2>HVI – Gesamt-Komplexität</h2>
+      <p class="sub">Zusammengesetzter Index (0–1), höher = strukturell reicher</p>
+      <div id="hvi"></div>
+    </div>
+    <div class="card">
+      <h2>Subindizes je Hecke</h2>
+      <p class="sub">Beiträge zur Gesamtbewertung</p>
+      <div class="sub-legend" id="sublegend"></div>
+      <div id="subs"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <h2>Artspezifische Habitateignung</h2>
+    <p class="sub">Fuzzy-Eignung 0–1 · dunkler = besser · umrahmt = bester Heckentyp je Art</p>
+    <div style="overflow-x:auto"><table id="heat"></table></div>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <h2>Roh-Metriken</h2>
+    <p class="sub">Aus dem LiDAR-Profil je Segment abgeleitet</p>
+    <div style="overflow-x:auto"><table class="metrics" id="metrics"></table></div>
+  </div>
+
+  <div class="card info" style="margin-top:20px">
+    <h2>Was bedeuten die Parameter?</h2>
+    <p class="sub">Kurzerklärung der erhobenen Kennwerte und wie sie in den Index eingehen</p>
+
+    <details open>
+      <summary>Roh-Metriken (aus dem LiDAR-Profil)</summary>
+      <dl class="gloss">
+        <dt>FHD <span class="rng">0 – ~3</span></dt>
+        <dd>Foliage Height Diversity – Shannon-Entropie der Blattmasse über die Höhenschichten.
+            Hoch = Blattwerk gleichmäßig über viele Höhen verteilt (viele Nischen). Kern des Vertikalindex.</dd>
+        <dt>VCI <span class="rng">0 – 1</span></dt>
+        <dd>Vertical Complexity Index – die auf 0–1 normierte FHD, dadurch zwischen unterschiedlich hohen Hecken vergleichbar.</dd>
+        <dt>Schichten <span class="rng">0 – 5</span></dt>
+        <dd>Zahl belegter Standardschichten (Kraut 0–0,5 m · Niedrigstrauch 0,5–1,5 · Mittelstrauch 1,5–3 · Hochstrauch 3–6 · Baum &gt;6 m).</dd>
+        <dt>Evenness <span class="rng">0 – 1</span></dt>
+        <dd>Pielou-Gleichverteilung der Schichtbelegung. Hoch = alle vorhandenen Schichten etwa gleich stark – trennt „geschichtet" von „monolithisch dicht".</dd>
+        <dt>Unterwuchs-Offenheit <span class="rng">0 – 1</span></dt>
+        <dd>Anteil der Returns unter 1 m. Hoch = offener Kraut-/Bodensaum (wichtig für Bodenjäger und besonnte Blühsäume).</dd>
+        <dt>Vertikale Lücke <span class="rng">0 – 1</span></dt>
+        <dd>Anteil leerer Höhenbänder bis zur P95-Höhe. Hoch = zerrissenes, lückiges Profil (z. B. hohe Baumreihe mit leerem Stammraum).</dd>
+        <dt>P95-Höhe <span class="rng">m</span></dt>
+        <dd>95-Perzentil der Vegetationshöhe – robuste Oberhöhe der Hecke (unempfindlich gegen einzelne Ausreißer).</dd>
+        <dt>Kronen-SD <span class="rng">m</span></dt>
+        <dd>Streuung der Oberhöhe entlang des Segments (aus dem CHM) – Maß der horizontalen Struktur-Rauigkeit.</dd>
+        <dt>Deckung <span class="rng">0 – 1</span></dt>
+        <dd>Anteil der Fläche mit Vegetation ≥ 0,5 m. Im eng geclippten Heckenpolygon meist nahe 1; erst über Rasterflächen mit Lücken wird sie richtig aussagekräftig.</dd>
+      </dl>
+    </details>
+
+    <details>
+      <summary>Subindizes &amp; Gesamt-HVI</summary>
+      <dl class="gloss">
+        <dt>Vertikale Komplexität <span class="rng">Gewicht 0,50</span></dt>
+        <dd>Mittel aus FHD, VCI, Schichtzahl und Evenness – der eigentliche „Vertikal"-Kern des Index.</dd>
+        <dt>Volumen / Größe <span class="rng">0,15</span></dt>
+        <dd>Aus P95-Höhe und Deckung – wie viel Gehölzmasse überhaupt vorhanden ist.</dd>
+        <dt>Heterogenität <span class="rng">0,25</span></dt>
+        <dd>Aus Kronen-SD, Kronen-CV und vertikaler Lücke – wie uneinheitlich/strukturiert die Hecke ist.</dd>
+        <dt>Zustand <span class="rng">0,10</span></dt>
+        <dd>NDVI als Vitalitäts-/Blühproxy (optional; fehlt er, wird er aus der Gewichtung genommen).</dd>
+        <dt>HVI <span class="rng">0 – 1</span></dt>
+        <dd>Gewichtetes Mittel der vier auf 0–1 skalierten Subindizes. Gewichte sind gegen Felddaten kalibrierbar.</dd>
+      </dl>
+    </details>
+
+    <details>
+      <summary>Habitateignung &amp; Klassifikation</summary>
+      <dl class="gloss">
+        <dt>Eignung (0–1)</dt>
+        <dd>Je Art über Fuzzy-Antwortkurven (Trapez/Gauß/monoton) auf einzelne Kennwerte, kombiniert als gewichtetes <b>geometrisches</b> Mittel (Liebig-Prinzip: ein fehlender Schlüsselfaktor zieht die Eignung stark herunter).</dd>
+        <dt>Heckentyp</dt>
+        <dd>Unüberwachte Clusterung der Segmente auf den strukturellen Subindizes – gruppiert ähnliche Hecken zu interpretierbaren Typen.</dd>
+      </dl>
+    </details>
+  </div>
+
+  <p class="foot" id="foot"></p>
+</div>
+
+<script>
+// ---- Ergebnisdaten aus demo/run_demo.R -------------------------------
+const HEDGES = ["geschoren_niedrig","strukturreich","baumreihe_hoch","dornig_mittel"];
+const HLAB = {geschoren_niedrig:"geschoren-niedrig",strukturreich:"strukturreich",
+              baumreihe_hoch:"hohe Baumreihe",dornig_mittel:"mitteldornig"};
+const HVI = {geschoren_niedrig:0.212, strukturreich:0.771, baumreihe_hoch:0.764, dornig_mittel:0.602};
+const SUB = {
+  geschoren_niedrig:{vc:0.274, vs:0.500, het:0.000, cond:0.000},
+  strukturreich:    {vc:0.926, vs:0.729, het:0.526, cond:0.674},
+  baumreihe_hoch:   {vc:0.540, vs:1.000, het:0.976, cond:1.000},
+  dornig_mittel:    {vc:0.803, vs:0.618, het:0.300, cond:0.326}
+};
+const SUBMETA = [
+  {k:"vc",  name:"Vertikale Komplexität", col:"#2e6b4f"},
+  {k:"vs",  name:"Volumen / Größe",       col:"#4a9d76"},
+  {k:"het", name:"Heterogenität",         col:"#8fce9f"},
+  {k:"cond",name:"Zustand (NDVI)",        col:"#c7b36a"}
+];
+const SPECIES = ["Neuntöter","Dorngrasmücke","Goldammer","Fledermaus","Wildbienen"];
+const SUIT = {
+  geschoren_niedrig:[0.18,0.35,0.74,0.00,0.82],
+  strukturreich:    [0.01,0.00,0.46,0.89,0.01],
+  baumreihe_hoch:   [0.01,0.00,0.00,0.92,0.00],
+  dornig_mittel:    [0.87,0.41,0.00,0.55,0.01]
+};
+const METRICS = {
+  cols:["FHD","VCI","Schichten","Evenness","Unterw.-Offenh.","Vert.Lücke","P95-Höhe","Kronen-SD","Deckung"],
+  keys:["fhd","vci","n","ev","und","vg","h","csd","cov"],
+  data:{
+    geschoren_niedrig:{fhd:1.051,vci:0.758,n:2,ev:0.337,und:0.802,vg:0.00,h:1.186,csd:0.155,cov:1.000},
+    strukturreich:    {fhd:2.292,vci:0.869,n:4,ev:0.874,und:0.261,vg:0.00,h:5.120,csd:1.383,cov:0.995},
+    baumreihe_hoch:   {fhd:2.342,vci:0.737,n:2,ev:0.421,und:0.000,vg:0.25,h:9.824,csd:2.316,cov:1.000},
+    dornig_mittel:    {fhd:1.823,vci:0.829,n:4,ev:0.798,und:0.188,vg:0.00,h:3.246,csd:0.649,cov:1.000}
+  }
+};
+
+// ---- HVI bars (sorted) ----------------------------------------------
+const hviDiv = document.getElementById("hvi");
+[...HEDGES].sort((a,b)=>HVI[b]-HVI[a]).forEach(h=>{
+  const pct=Math.round(HVI[h]*100);
+  const inside = pct>18;
+  hviDiv.insertAdjacentHTML("beforeend",
+   `<div class="row"><div class="lab">${HLAB[h]}</div>
+     <div class="bar"><span style="width:0" data-w="${pct}%"></span>
+     <b class="${inside?'val-in':''}">${HVI[h].toFixed(2)}</b></div></div>`);
+});
+
+// ---- Subindex grouped bars ------------------------------------------
+document.getElementById("sublegend").innerHTML = SUBMETA.map(m=>
+  `<span class="chip"><span class="sw" style="background:${m.col}"></span>${m.name}</span>`).join("");
+const subsDiv=document.getElementById("subs");
+HEDGES.forEach(h=>{
+  let seg="";
+  SUBMETA.forEach(m=>{ const v=SUB[h][m.k];
+    seg+=`<i title="${m.name}: ${v.toFixed(2)}" style="width:0;background:${m.col}" data-w="${(v*100/4)}%"></i>`;});
+  subsDiv.insertAdjacentHTML("beforeend",
+   `<div class="gname">${HLAB[h]}</div><div class="gbar">${seg}</div>`);
+});
+
+// ---- Heatmap ---------------------------------------------------------
+function heatColor(v){ // white -> green
+  const t=Math.max(0,Math.min(1,v));
+  const r=Math.round(255+(46-255)*t), g=Math.round(255+(107-255)*t), b=Math.round(255+(79-255)*t);
+  return `rgb(${r},${g},${b})`;
+}
+const heat=document.getElementById("heat");
+let head="<tr><th class='rowh'>Heckentyp \\ Art</th>"+SPECIES.map(s=>`<th>${s}</th>`).join("")+"</tr>";
+// column maxima for best-highlight
+const colMax=SPECIES.map((_,j)=>Math.max(...HEDGES.map(h=>SUIT[h][j])));
+let body="";
+HEDGES.forEach(h=>{
+  body+=`<tr><td class="rowh">${HLAB[h]}</td>`+
+    SUIT[h].map((v,j)=>{
+      const best = v===colMax[j] && v>0 ? " best":"";
+      const tc = v>0.55?"#fff":"#13291f";
+      return `<td class="cell${best}" style="background:${heatColor(v)};color:${tc}">${v.toFixed(2)}</td>`;
+    }).join("")+"</tr>";
+});
+heat.innerHTML=head+body;
+
+// ---- Metrics table ---------------------------------------------------
+const mt=document.getElementById("metrics");
+let mh="<tr><th class='rowh'>Hecke</th>"+METRICS.cols.map(c=>`<th>${c}</th>`).join("")+"</tr>";
+let mb="";
+HEDGES.forEach(h=>{
+  const d=METRICS.data[h];
+  mb+=`<tr><td class="rowh">${HLAB[h]}</td>`+
+    METRICS.keys.map(k=>`<td>${(k==='n')?d[k]:d[k].toFixed(k==='vg'?2:2)}</td>`).join("")+"</tr>";
+});
+mt.innerHTML=mh+mb;
+
+// ---- footer ----------------------------------------------------------
+const bestHVI=[...HEDGES].sort((a,b)=>HVI[b]-HVI[a])[0];
+document.getElementById("foot").innerHTML =
+  `Höchster HVI: <b>${HLAB[bestHVI]}</b> (${HVI[bestHVI].toFixed(2)}). `+
+  `Beste Eignung je Art — Neuntöter: mitteldornig · Fledermaus: hohe Baumreihe · `+
+  `Wildbienen: geschoren-niedrig · Goldammer: geschoren-niedrig. `+
+  `Datenquelle: <code>demo/run_demo.R</code>. Für echte AHN-Kacheln Ergebnisse mit `+
+  `<code>hvi_ahn_run()</code> erzeugen und Werte in diesem HTML ersetzen.`;
+
+// ---- animate bars on load -------------------------------------------
+requestAnimationFrame(()=>{ setTimeout(()=>{
+  document.querySelectorAll('.bar>span,[data-w]').forEach(el=>{ el.style.width=el.dataset.w; });
+},60); });
+</script>
+</body>
+</html>

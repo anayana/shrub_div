@@ -1,0 +1,243 @@
+<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>HVI echte Hecken</title><style>
+:root{--navy:#1f3a2e;--green:#2e6b4f;--green2:#4a9d76;--bg:#eef1ea;--card:#fff;
+--ink:#1d241f;--muted:#6a7269;--grid:#e2e8df}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.45}
+.wrap{max-width:1200px;margin:0 auto;padding:20px 16px 46px}
+h1{font-size:21px;color:var(--navy);margin:0 0 3px}
+.lead{color:var(--muted);font-size:13px;margin:0 0 12px}
+.rule{height:3px;background:linear-gradient(90deg,var(--green),#8fce9f);border-radius:3px;margin:10px 0 16px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.bar button{border:1px solid var(--grid);background:#fff;color:var(--ink);padding:7px 12px;
+border-radius:20px;font-size:12.5px;cursor:pointer;font-weight:600}
+.bar button.active{background:var(--green);color:#fff;border-color:var(--green)}
+.bar button.struct.active{background:var(--navy);border-color:var(--navy)}
+.layout{display:grid;gap:16px}@media(min-width:860px){.layout{grid-template-columns:1.5fr 1fr}}
+.card{background:var(--card);border:1px solid var(--grid);border-radius:13px;padding:14px 16px;margin-top:16px}
+.card:first-of-type{margin-top:0}
+.card h2{font-size:13.5px;margin:0 0 8px;color:var(--green)}
+.card .sub{font-size:12px;color:var(--muted);margin:-4px 0 12px}
+svg#map{width:100%;height:auto;background:#f6f8f3;border-radius:8px;border:1px solid var(--grid)}
+.hedge{cursor:pointer;stroke:#5c6b5e;stroke-width:.6;transition:fill .25s}
+.hedge.sel{stroke:#10261a;stroke-width:2}
+.legend{display:flex;align-items:center;gap:9px;margin-top:9px;font-size:12px;color:var(--muted)}
+.legbar{height:12px;width:170px;border-radius:6px}
+.selhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.selhead b{font-size:15px;color:var(--navy)}
+.pill{font-size:11px;font-weight:700;border-radius:20px;padding:2px 9px;color:#fff}
+.srow{display:flex;align-items:center;gap:8px;margin:5px 0}
+.srow .n{flex:0 0 100px;font-size:12.5px;text-align:right}
+.sbar{flex:1;height:17px;border-radius:6px;background:var(--grid);position:relative;overflow:hidden}
+.sbar>i{position:absolute;left:0;top:0;bottom:0;border-radius:6px}
+.sbar>b{position:absolute;right:6px;top:0;bottom:0;display:flex;align-items:center;font-size:11px;font-weight:700}
+.mets{display:grid;grid-template-columns:1fr 1fr;gap:3px 16px;margin-top:12px;font-size:12px}
+.mets div{display:flex;justify-content:space-between;border-bottom:1px dotted var(--grid);padding:2px 0}
+.mets span{color:var(--muted)}
+.note{font-size:11.5px;color:var(--muted);margin-top:12px}
+.hvirow{display:flex;align-items:center;gap:8px;margin:3px 0;cursor:pointer}
+.hvirow .id{flex:0 0 58px;font-size:11.5px;text-align:right;color:var(--muted)}
+.hvirow.sel .id{color:var(--navy);font-weight:700}
+.hvibar{flex:1;height:15px;background:var(--grid);border-radius:5px;position:relative;overflow:hidden}
+.hvibar>i{position:absolute;left:0;top:0;bottom:0;border-radius:5px}
+.hvibar>b{position:absolute;right:6px;top:0;bottom:0;display:flex;align-items:center;font-size:10.5px;font-weight:700;color:#10261a}
+table.heat{border-collapse:collapse;width:100%;font-size:11px}
+table.heat th,table.heat td{padding:4px 5px;text-align:center;border:1px solid var(--grid)}
+table.heat th{background:var(--green);color:#fff;font-size:10.5px}
+table.heat td.rowh{background:#eef3ec;text-align:right;font-weight:600;cursor:pointer;white-space:nowrap}
+table.heat tr.sel td.rowh{background:var(--navy);color:#fff}
+.info details{border-top:1px solid var(--grid);padding:6px 0}
+.info summary{cursor:pointer;font-weight:600;font-size:13px;color:var(--navy);padding:7px 0;list-style:none}
+.info summary::-webkit-details-marker{display:none}
+.info summary::before{content:"\25B8";color:var(--green2);margin-right:8px;transition:transform .2s;display:inline-block}
+.info details[open] summary::before{transform:rotate(90deg)}
+dl.gloss{margin:4px 0 6px;display:grid;gap:9px}
+@media(min-width:720px){dl.gloss{grid-template-columns:1fr 1fr;gap:9px 24px}}
+dl.gloss dt{font-weight:700;color:var(--green);font-size:12px}
+dl.gloss dd{margin:0;font-size:12px}
+dl.gloss .rng{font-weight:600;color:var(--muted);font-size:10.5px;background:#eef3ec;border-radius:10px;padding:1px 6px;margin-left:5px}
+#detail canvas{width:100%;height:150px;border:1px solid var(--grid);border-radius:8px;
+background:linear-gradient(#f7faf5,#eef3ea);margin-top:10px;display:block}
+#profhint{font-size:11px;color:var(--muted);margin-top:6px;display:none}
+#bandleg{display:flex;flex-wrap:wrap;gap:9px;font-size:10.5px;color:var(--muted);margin-top:5px}
+#bandleg i{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:3px;vertical-align:-1px}
+</style></head><body><div class='wrap'>
+<h1>Heckeneignung – echte AHN4-Daten (Kachel C_28FN2)</h1>
+<p class="lead">26 aus LiDAR abgeleitete Hecken. Art waehlen -> Einfaerbung nach realer Habitateignung.
+Auf Hecke, HVI-Balken oder Heatmap-Zeile klicken -> Details. Start: diverser Ausschnitt.</p>
+<div class="rule"></div>
+<div class="bar" id="species"></div>
+<div class="card" style="margin-top:0;border:2px solid var(--green)">
+<h2 style="font-size:15px">LiDAR-Punktwolke der ausgewaehlten Hecke <span id="pwname" style="color:var(--muted);font-weight:400;font-size:12px"></span></h2>
+<canvas id="profileBig" width="1400" height="360" style="width:100%;height:330px;border:1px solid var(--grid);border-radius:8px;background:linear-gradient(#f7faf5,#eef3ea);display:block"></canvas>
+<div id="bandlegBig" style="display:flex;flex-wrap:wrap;gap:11px;font-size:11.5px;color:var(--muted);margin-top:7px"></div>
+<div style="font-size:11.5px;color:var(--muted);margin-top:5px">Seitenprofil (Laenge x Hoehe). Art oben umschalten faerbt die Punkte nach Eignung der Hoehe. Andere Hecke: unten in Karte/Rangfolge/Heatmap anklicken.</div>
+</div>
+<div class="layout">
+<div class="card" style="margin-top:0">
+<h2 id="maptitle">Karte</h2>
+<svg id="map" preserveAspectRatio="xMidYMid meet"></svg>
+<div class="legend"><span id="lo">wenig</span><div class="legbar" id="legbar"></div><span id="hi">viel</span>
+<span style="flex:1"></span><button id="zoombtn" style="border:1px solid var(--grid);background:#fff;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer">ganze Flaeche</button></div>
+</div>
+<div class="card" id="detail" style="margin-top:0">
+<div class="selhead"><b id="selName">-</b><span class="pill" id="selPill"></span></div><canvas id="profile" width="700" height="300"></canvas><div id="bandleg"></div><div id="profhint">Punktwolke: in RStudio <code>export_points.R</code> ausf&uuml;hren, dann neu laden.</div>
+<div id="suit" style="margin-top:10px"></div>
+<div id="subs" style="margin-top:10px"></div>
+<div class="mets" id="mets"></div>
+</div></div>
+
+<div class="card"><h2>HVI-Rangfolge aller Hecken</h2>
+<p class="sub">Struktur-Komplexitaet je Hecke (0-1). Klick = auswaehlen.</p>
+<div id="hviRank"></div></div>
+
+<div class="card"><h2>Eignungs-Heatmap (Hecke x Art)</h2>
+<p class="sub">dunkler = besser geeignet. Zeilen nach HVI sortiert.</p>
+<div style="overflow-x:auto"><table class="heat" id="heat"></table></div></div>
+
+<div class="card info"><h2>Was bedeuten die Parameter?</h2>
+<details open><summary>Roh-Metriken (aus dem LiDAR-Profil)</summary>
+<dl class="gloss">
+<dt>FHD <span class="rng">0-~3</span></dt><dd>Shannon-Entropie der Blattmasse ueber die Hoehe. Hoch = viele gleich stark besetzte Schichten.</dd>
+<dt>VCI <span class="rng">0-1</span></dt><dd>Auf 0-1 normierte FHD, zwischen unterschiedlich hohen Hecken vergleichbar.</dd>
+<dt>Schichten <span class="rng">0-5</span></dt><dd>Belegte Standardschichten (Kraut/Nieder-/Mittel-/Hochstrauch/Baum).</dd>
+<dt>Evenness <span class="rng">0-1</span></dt><dd>Gleichverteilung der Schichtbelegung; trennt geschichtet von monolithisch.</dd>
+<dt>Unterwuchs-Offenheit <span class="rng">0-1</span></dt><dd>Anteil Returns &lt;1 m; offener Kraut-/Bodensaum.</dd>
+<dt>Vertikale Lueckigkeit <span class="rng">0-1</span></dt><dd>Anteil leerer Hoehenbaender bis P95; zerrissenes Profil.</dd>
+<dt>P95-Hoehe <span class="rng">m</span></dt><dd>Robuste Oberhoehe der Hecke.</dd>
+<dt>Kronen-SD <span class="rng">m</span></dt><dd>Streuung der Oberhoehe; horizontale Rauigkeit.</dd>
+<dt>Deckung <span class="rng">0-1</span></dt><dd>Flaechenanteil mit Vegetation &ge;0,5 m.</dd>
+</dl></details>
+<details><summary>Subindizes & HVI</summary>
+<dl class="gloss">
+<dt>Vertikale Komplexitaet <span class="rng">Gew. 0,50</span></dt><dd>FHD, VCI, Schichtzahl, Evenness - der Vertikal-Kern.</dd>
+<dt>Volumen/Groesse <span class="rng">0,15</span></dt><dd>P95-Hoehe, Deckung.</dd>
+<dt>Heterogenitaet <span class="rng">0,25</span></dt><dd>Kronen-SD, Kronen-CV, vertikale Luecke.</dd>
+<dt>Zustand <span class="rng">0,10</span></dt><dd>NDVI (nur wenn add_ndvi.R gelaufen ist).</dd>
+<dt>HVI <span class="rng">0-1</span></dt><dd>Gewichtetes Mittel der Subindizes, global normiert.</dd>
+</dl></details>
+<details><summary>Eignung & Klassifikation</summary>
+<dl class="gloss">
+<dt>Eignung (0-1)</dt><dd>Fuzzy-Antwortkurven je Art, kombiniert als geometrisches Mittel (Liebig-Prinzip).</dd>
+<dt>Heckentyp</dt><dd>Cluster der Segmente auf den strukturellen Subindizes.</dd>
+</dl></details></div>
+</div><script src="testdata/points_C_28FN2.js"></script>
+<script>
+const D={"hedges":[{"hedge_id":1,"fhd":2.366663172275493,"vci":0.8535933055240991,"n_layers":5.0,"strata_evenness":0.7869904043190634,"understory_openness":0.11239860950173812,"vertical_gap":0.0,"h_max":7.7,"h_mean":3.1456431054461182,"h_p95":6.02075,"h_sd":1.6509520317390092,"canopy_sd":1.6590009422493808,"canopy_cv":0.41345010083239914,"cover_frac":1.0,"HVI":0.7648958856263652,"vertical_complexity":0.6601459274607906,"volume_size":1.0,"heterogeneity":0.8333333333333334,"Neuntoeter":0.007344556775605779,"Dorngrasmuecke":0.0012513160550572532,"Goldammer":0.0027185796334751123,"Fledermaus":0.9983293534594412,"Wildbienen":0.0002275845926074789,"hedge_type":"-","polys":[[[[125.5,0.0],[125.5,1.0],[125.0,1.0],[125.0,2.5],[123.0,2.5],[123.0,3.5],[122.5,3.5],[122.5,3.0],[122.0,3.0],[122.0,1.5],[120.5,1.5],[120.5,2.0],[120.0,2.0],[120.0,2.5],[119.5,2.5],[119.5,4.0],[119.0,4.0],[119.0,5.0],[118.5,5.0],[118.5,4.5],[118.0,4.5],[118.0,4.0],[118.5,4.0],[118.5,3.5],[118.0,3.5],[118.0,3.0],[117.5,3.0],[117.5,2.5],[116.5,2.5],[116.5,3.0],[115.0,3.0],[115.0,3.5],[113.5,3.5],[113.5,4.0],[113.0,4.0],[113.0,3.5],[112.0,3.5],[112.0,4.0],[111.5,4.0],[111.5,4.5],[111.0,4.5],[111.0,4.0],[110.0,4.0],[110.0,6.0],[111.0,6.0],[111.0,6.5],[111.5,6.5],[111.5,6.0],[112.0,6.0],[112.0,6.5],[112.5,6.5],[112.5,7.0],[112.0,7.0],[112.0,8.5],[113.0,8.5],[113.0,9.5],[113.5,9.5],[113.5,10.0],[114.5,10.0],[114.5,9.5],[115.0,9.5],[115.0,10.0],[115.5,10.0],[115.5,9.0],[116.5,9.0],[116.5,8.5],[117.0,8.5],[117.0,7.5],[116.5,7.5],[116.5,6.0],[117.0,6.0],[117.0,7.0],[118.0,7.0],[118.0,7.5],[118.5,7.5],[118.5,8.0],[121.0,8.0],[121.0,7.0],[122.0,7.0],[122.0,6.5],[120.5,6.5],[120.5,6.0],[120.0,6.0],[120.0,5.0],[121.0,5.0],[121.0,5.5],[121.5,5.5],[121.5,5.0],[123.0,5.0],[123.0,6.0],[123.5,6.0],[123.5,6.5],[123.0,6.5],[123.0,7.5],[124.0,7.5],[124.0,7.0],[124.5,7.0],[124.5,6.5],[125.5,6.5],[125.5,7.0],[126.0,7.0],[126.0,6.5],[126.5,6.5],[126.5,6.0],[127.0,6.0],[127.0,5.5],[127.5,5.5],[127.5,6.0],[128.5,6.0],[128.5,6.5],[129.5,6.5],[129.5,5.5],[130.0,5.5],[130.0,6.0],[130.5,6.0],[130.5,5.5],[131.0,5.5],[131.0,5.0],[131.5,5.0],[131.5,3.5],[133.0,3.5],[133.0,3.0],[133.5,3.0],[133.5,3.5],[134.0,3.5],[134.0,4.5],[134.5,4.5],[134.5,5.0],[135.0,5.0],[135.0,4.5],[136.5,4.5],[136.5,4.0],[136.0,4.0],[136.0,2.5],[135.5,2.5],[135.5,1.5],[135.0,1.5],[135.0,2.0],[134.0,2.0],[134.0,2.5],[133.0,2.5],[133.0,2.0],[133.5,2.0],[133.5,1.0],[132.5,1.0],[132.5,0.0],[132.0,0.0],[132.0,0.5],[131.5,0.5],[131.5,0.0],[131.0,0.0],[131.0,0.5],[130.0,0.5],[130.0,1.0],[129.5,1.0],[129.5,2.5],[127.5,2.5],[127.5,1.5],[127.0,1.5],[127.0,1.0],[126.5,1.0],[126.5,0.5],[126.0,0.5],[126.0,0.0],[125.5,0.0]],[[120.5,2.0],[121.0,2.0],[121.0,2.5],[120.5,2.5],[120.5,2.0]],[[130.5,2.5],[131.0,2.5],[131.0,3.0],[130.5,3.0],[130.5,2.5]],[[117.0,3.0],[117.5,3.0],[117.5,3.5],[117.0,3.5],[117.0,3.0]],[[124.0,3.0],[125.0,3.0],[125.0,4.0],[124.5,4.0],[124.5,4.5],[124.0,4.5],[124.0,4.0],[123.5,4.0],[123.5,3.5],[124.0,3.5],[124.0,3.0]],[[115.0,3.5],[115.5,3.5],[115.5,4.0],[115.0,4.0],[115.0,3.5]],[[113.5,4.0],[114.0,4.0],[114.0,4.5],[113.5,4.5],[113.5,4.0]],[[122.0,4.0],[122.5,4.0],[122.5,4.5],[122.0,4.5],[122.0,4.0]],[[125.0,4.0],[127.5,4.0],[127.5,5.0],[126.0,5.0],[126.0,4.5],[125.0,4.5],[125.0,4.0]],[[112.0,4.5],[113.0,4.5],[113.0,5.0],[112.0,5.0],[112.0,4.5]],[[127.5,5.0],[128.0,5.0],[128.0,5.5],[127.5,5.5],[127.5,5.0]]]],"cx":122.6,"cy":4.4},{"hedge_id":2,"fhd":2.4130916511196236,"vci":0.8703388395702104,"n_layers":3.0,"strata_evenness":0.5702466714136191,"understory_openness":0.05832832230907998,"vertical_gap":0.0,"h_max":7.809,"h_mean":2.072494487873321,"h_p95":3.434199999999999,"h_sd":0.7780023852966962,"canopy_sd":0.7757565747477507,"canopy_cv":0.33459094428767755,"cover_frac":1.0,"HVI":0.4685998394884948,"vertical_complexity":0.6101463777459574,"volume_size":0.5,"heterogeneity":0.16666666666666666,"Neuntoeter":0.6821731051585539,"Dorngrasmuecke":0.18548769871951748,"Goldammer":0.003511191734215133,"Fledermaus":0.5926723883777948,"Wildbienen":0.0065680600171312,"hedge_type":"-","polys":[[[[34.0,19.0],[34.0,19.5],[32.5,19.5],[32.5,21.5],[33.5,21.5],[33.5,22.0],[34.0,22.0],[34.0,23.0],[33.5,23.0],[33.5,23.5],[33.0,23.5],[33.0,24.0],[32.5,24.0],[32.5,25.0],[32.0,25.0],[32.0,23.5],[31.5,23.5],[31.5,24.0],[31.0,24.0],[31.0,22.5],[30.5,22.5],[30.5,21.5],[29.5,21.5],[29.5,21.0],[29.0,21.0],[29.0,20.0],[28.0,20.0],[28.0,21.0],[26.0,21.0],[26.0,21.5],[25.0,21.5],[25.0,22.0],[24.5,22.0],[24.5,25.0],[24.0,25.0],[24.0,26.0],[24.5,26.0],[24.5,25.5],[29.0,25.5],[29.0,26.5],[28.5,26.5],[28.5,27.0],[28.0,27.0],[28.0,27.5],[26.5,27.5],[26.5,28.5],[26.0,28.5],[26.0,28.0],[25.5,28.0],[25.5,27.5],[25.0,27.5],[25.0,28.0],[24.5,28.0],[24.5,29.0],[24.0,29.0],[24.0,30.0],[24.5,30.0],[24.5,30.5],[25.5,30.5],[25.5,29.0],[27.5,29.0],[27.5,29.5],[26.5,29.5],[26.5,30.0],[26.0,30.0],[26.0,31.0],[26.5,31.0],[26.5,31.5],[26.0,31.5],[26.0,32.5],[25.5,32.5],[25.5,32.0],[25.0,32.0],[25.0,31.5],[24.0,31.5],[24.0,30.5],[21.5,30.5],[21.5,31.0],[21.0,31.0],[21.0,31.5],[20.5,31.5],[20.5,31.0],[19.0,31.0],[19.0,30.5],[17.5,30.5],[17.5,31.0],[14.5,31.0],[14.5,31.5],[14.0,31.5],[14.0,32.0],[13.0,32.0],[13.0,31.5],[12.5,31.5],[12.5,30.0],[11.5,30.0],[11.5,29.5],[10.0,29.5],[10.0,28.5],[10.5,28.5],[10.5,28.0],[11.0,28.0],[11.0,27.5],[12.5,27.5],[12.5,28.0],[13.0,28.0],[13.0,27.0],[12.5,27.0],[12.5,26.0],[11.5,26.0],[11.5,25.5],[11.0,25.5],[11.0,25.0],[10.5,25.0],[10.5,25.5],[10.0,25.5],[10.0,27.0],[10.5,27.0],[10.5,27.5],[8.5,27.5],[8.5,28.0],[8.0,28.0],[8.0,28.5],[8.5,28.5],[8.5,29.0],[7.0,29.0],[7.0,28.5],[6.5,28.5],[6.5,29.0],[6.0,29.0],[6.0,29.5],[5.5,29.5],[5.5,30.5],[5.0,30.5],[5.0,31.0],[4.0,31.0],[4.0,30.5],[3.5,30.5],[3.5,31.0],[3.0,31.0],[3.0,32.0],[3.5,32.0],[3.5,32.5],[4.0,32.5],[4.0,33.5],[3.5,33.5],[3.5,34.0],[3.0,34.0],[3.0,33.5],[2.0,33.5],[2.0,34.0],[1.5,34.0],[1.5,35.0],[1.0,35.0],[1.0,35.5],[0.5,35.5],[0.5,36.0],[0.0,36.0],[0.0,36.5],[0.5,36.5],[0.5,37.0],[1.0,37.0],[1.0,37.5],[0.5,37.5],[0.5,38.0],[1.5,38.0],[1.5,39.0],[2.5,39.0],[2.5,38.5],[3.0,38.5],[3.0,39.0],[4.5,39.0],[4.5,38.5],[7.5,38.5],[7.5,38.0],[8.5,38.0],[8.5,37.5],[9.5,37.5],[9.5,37.0],[10.0,37.0],[10.0,37.5],[11.5,37.5],[11.5,37.0],[13.0,37.0],[13.0,37.5],[14.5,37.5],[14.5,37.0],[15.0,37.0],[15.0,36.5],[16.5,36.5],[16.5,36.0],[17.0,36.0],[17.0,36.5],[20.0,36.5],[20.0,34.5],[20.5,34.5],[20.5,35.5],[21.5,35.5],[21.5,36.0],[22.5,36.0],[22.5,35.0],[23.0,35.0],[23.0,33.0],[24.0,33.0],[24.0,33.5],[23.5,33.5],[23.5,34.0],[24.0,34.0],[24.0,34.5],[23.5,34.5],[23.5,35.0],[26.5,35.0],[26.5,34.5],[27.0,34.5],[27.0,35.0],[28.5,35.0],[28.5,34.5],[29.0,34.5],[29.0,35.0],[31.0,35.0],[31.0,34.5],[31.5,34.5],[31.5,35.0],[33.0,35.0],[33.0,34.0],[33.5,34.0],[33.5,33.5],[34.0,33.5],[34.0,34.0],[36.5,34.0],[36.5,33.5],[37.0,33.5],[37.0,34.0],[38.0,34.0],[38.0,33.5],[40.0,33.5],[40.0,33.0],[40.5,33.0],[40.5,33.5],[41.0,33.5],[41.0,33.0],[42.0,33.0],[42.0,32.5],[46.0,32.5],[46.0,32.0],[46.5,32.0],[46.5,31.0],[47.0,31.0],[47.0,31.5],[49.5,31.5],[49.5,31.0],[50.5,31.0],[50.5,31.5],[51.0,31.5],[51.0,31.0],[53.0,31.0],[53.0,30.5],[53.5,30.5],[53.5,30.0],[54.0,30.0],[54.0,29.0],[53.5,29.0],[53.5,28.5],[53.0,28.5],[53.0,29.0],[52.5,29.0],[52.5,28.5],[51.5,28.5],[51.5,28.0],[50.0,28.0],[50.0,28.5],[48.5,28.5],[48.5,29.0],[47.5,29.0],[47.5,27.5],[47.0,27.5],[47.0,27.0],[46.5,27.0],[46.5,26.5],[46.0,26.5],[46.0,26.0],[45.5,26.0],[45.5,25.0],[45.0,25.0],[45.0,24.5],[44.5,24.5],[44.5,25.0],[44.0,25.0],[44.0,26.5],[44.5,26.5],[44.5,27.0],[45.0,27.0],[45.0,28.0],[46.0,28.0],[46.0,27.5],[46.5,27.5],[46.5,28.5],[45.5,28.5],[45.5,29.0],[44.5,29.0],[44.5,30.0],[44.0,30.0],[44.0,29.5],[43.5,29.5],[43.5,29.0],[43.0,29.0],[43.0,28.5],[43.5,28.5],[43.5,28.0],[44.0,28.0],[44.0,27.0],[43.5,27.0],[43.5,25.0],[42.0,25.0],[42.0,26.0],[40.5,26.0],[40.5,25.5],[41.5,25.5],[41.5,25.0],[41.0,25.0],[41.0,24.5],[40.5,24.5],[40.5,24.0],[39.5,24.0],[39.5,23.5],[39.0,23.5],[39.0,23.0],[38.0,23.0],[38.0,22.0],[37.0,22.0],[37.0,22.5],[36.5,22.5],[36.5,21.5],[36.0,21.5],[36.0,22.5],[35.5,22.5],[35.5,23.0],[34.5,23.0],[34.5,22.5],[35.0,22.5],[35.0,21.0],[35.5,21.0],[35.5,20.0],[35.0,20.0],[35.0,19.0],[34.0,19.0]],[[35.0,23.5],[35.5,23.5],[35.5,24.5],[36.0,24.5],[36.0,25.0],[35.5,25.0],[35.5,26.5],[36.5,26.5],[36.5,27.5],[36.0,27.5],[36.0,28.0],[35.5,28.0],[35.5,27.5],[35.0,27.5],[35.0,26.5],[34.5,26.5],[34.5,25.0],[35.0,25.0],[35.0,23.5]],[[30.5,24.0],[31.0,24.0],[31.0,24.5],[30.5,24.5],[30.5,24.0]],[[38.5,24.5],[39.0,24.5],[39.0,25.5],[38.0,25.5],[38.0,25.0],[38.5,25.0],[38.5,24.5]],[[39.0,25.5],[40.0,25.5],[40.0,26.0],[39.0,26.0],[39.0,25.5]],[[28.5,27.0],[29.5,27.0],[29.5,27.5],[28.5,27.5],[28.5,27.0]],[[30.5,27.5],[31.0,27.5],[31.0,29.0],[30.5,29.0],[30.5,27.5]],[[36.5,27.5],[37.0,27.5],[37.0,28.0],[36.5,28.0],[36.5,27.5]],[[35.0,29.0],[35.5,29.0],[35.5,29.5],[35.0,29.5],[35.0,29.0]],[[6.0,29.5],[6.5,29.5],[6.5,30.0],[6.0,30.0],[6.0,29.5]],[[7.5,29.5],[8.0,29.5],[8.0,30.5],[8.5,30.5],[8.5,30.0],[10.0,30.0],[10.0,30.5],[11.0,30.5],[11.0,32.5],[11.5,32.5],[11.5,33.5],[11.0,33.5],[11.0,33.0],[10.5,33.0],[10.5,33.5],[10.0,33.5],[10.0,33.0],[9.5,33.0],[9.5,33.5],[9.0,33.5],[9.0,32.0],[8.0,32.0],[8.0,33.0],[7.5,33.0],[7.5,33.5],[6.0,33.5],[6.0,33.0],[6.5,33.0],[6.5,31.5],[6.0,31.5],[6.0,31.0],[6.5,31.0],[6.5,30.5],[7.0,30.5],[7.0,30.0],[7.5,30.0],[7.5,29.5]],[[27.5,29.5],[29.0,29.5],[29.0,30.0],[30.5,30.0],[30.5,32.0],[30.0,32.0],[30.0,31.5],[28.5,31.5],[28.5,31.0],[27.5,31.0],[27.5,29.5]],[[31.0,29.5],[32.0,29.5],[32.0,30.0],[31.0,30.0],[31.0,29.5]],[[42.0,29.5],[42.5,29.5],[42.5,30.0],[42.0,30.0],[42.0,29.5]],[[45.0,29.5],[45.5,29.5],[45.5,30.0],[45.0,30.0],[45.0,29.5]],[[50.0,29.5],[50.5,29.5],[50.5,30.5],[50.0,30.5],[50.0,29.5]],[[41.5,30.5],[42.0,30.5],[42.0,31.0],[41.5,31.0],[41.5,30.5]],[[32.5,31.0],[33.5,31.0],[33.5,31.5],[32.5,31.5],[32.5,31.0]],[[21.5,31.5],[22.0,31.5],[22.0,32.5],[21.5,32.5],[21.5,31.5]],[[14.5,32.0],[15.0,32.0],[15.0,32.5],[14.5,32.5],[14.5,32.0]],[[20.0,32.0],[21.0,32.0],[21.0,33.0],[19.0,33.0],[19.0,32.5],[20.0,32.5],[20.0,32.0]],[[30.5,32.0],[31.5,32.0],[31.5,32.5],[30.5,32.5],[30.5,32.0]],[[32.0,32.0],[32.5,32.0],[32.5,33.0],[33.5,33.0],[33.5,33.5],[32.0,33.5],[32.0,32.0]],[[22.0,32.5],[22.5,32.5],[22.5,33.0],[22.0,33.0],[22.0,32.5]],[[27.5,32.5],[28.0,32.5],[28.0,33.0],[27.5,33.0],[27.5,32.5]],[[29.0,33.0],[29.5,33.0],[29.5,33.5],[29.0,33.5],[29.0,33.0]],[[19.5,34.0],[20.0,34.0],[20.0,34.5],[19.5,34.5],[19.5,34.0]]]],"cx":26.7,"cy":29.7}],"extent":[136.5,39.0],"window":{"x":0,"y":0,"size":136.5,"n":2,"types":1,"hvi_range":0},"origin":[257394.0,495160.5]};
+const SPEC=[["Neuntoeter","Neuntoeter"],["Dorngrasmuecke","Dorngrasmuecke"],
+["Goldammer","Goldammer"],["Fledermaus","Fledermaus"],["Wildbienen","Wildbienen"]];
+const num=v=>{const x=parseFloat(v);return isNaN(x)?null:x;};
+let mode="Neuntoeter", selected=D.hedges[0].hedge_id, zoomed=true;
+const lerp=(a,b,t)=>a+(b-a)*t, hx=c=>c.map(v=>Math.round(v).toString(16).padStart(2,"0")).join("");
+function rmp(s,v){v=Math.min(1,Math.max(0,v));for(let i=0;i<s.length-1;i++){const[a,ca]=s[i],[b,cb]=s[i+1];
+if(v<=b){const t=(v-a)/(b-a);return"#"+hx(ca.map((c,j)=>lerp(c,cb[j],t)));}}return"#"+hx(s[s.length-1][1]);}
+const SU=[[0,[244,231,158]],[0.35,[201,222,132]],[0.7,[124,192,138]],[1,[20,83,45]]];
+const HV=[[0,[238,243,236]],[0.4,[143,206,159]],[0.75,[46,107,79]],[1,[19,52,33]]];
+const scaleSuit=v=>rmp(SU,v), scaleHVI=v=>rmp(HV,v);
+const valFor=h=>mode==="HVI"?num(h.HVI):num(h[mode]);
+const colFor=h=>{const v=valFor(h);if(v==null)return"#ccc";return mode==="HVI"?scaleHVI(v):scaleSuit(v);};
+const sb=document.getElementById("species");
+SPEC.forEach(([k,lab])=>{const b=document.createElement("button");b.textContent=lab;b.dataset.k=k;b.onclick=()=>{mode=k;draw();};sb.appendChild(b);});
+const bh=document.createElement("button");bh.textContent="HVI (Struktur)";bh.className="struct";bh.dataset.k="HVI";bh.onclick=()=>{mode="HVI";draw();};sb.appendChild(bh);
+const map=document.getElementById("map");
+function pathFor(h){return h.polys.map(pg=>pg.map(r=>"M"+r.map(p=>p.join(",")).join("L")+"Z").join("")).join("");}
+function setView(){const w=D.window,e=D.extent;
+if(zoomed)map.setAttribute("viewBox",(w.x-20)+" "+(w.y-20)+" "+(w.size+40)+" "+(w.size+40));
+else map.setAttribute("viewBox","-20 -20 "+(e[0]+40)+" "+(e[1]+40));}
+function drawMap(){setView();
+const sh=D.hedges.find(x=>x.hedge_id===selected);
+let mk="";
+if(sh){const vb=map.getAttribute("viewBox").split(" ").map(Number);const r=Math.max(6,vb[2]/26);
+mk='<circle cx="'+sh.cx+'" cy="'+sh.cy+'" r="'+r+'" fill="none" stroke="#e2483d" stroke-width="'+(r*0.16)+'"/>'+
+'<circle cx="'+sh.cx+'" cy="'+sh.cy+'" r="'+(r*1.8)+'" fill="none" stroke="#e2483d" stroke-width="'+(r*0.05)+'" opacity="0.55"/>';}
+map.innerHTML=D.hedges.map(h=>'<path class="hedge'+(h.hedge_id===selected?" sel":"")+'" data-id="'+h.hedge_id+'" d="'+pathFor(h)+'" fill="'+colFor(h)+'"><title>Hecke '+h.hedge_id+' - Typ '+h.hedge_type+' - HVI '+num(h.HVI).toFixed(2)+'</title></path>').join("")+mk;
+map.querySelectorAll(".hedge").forEach(el=>el.onclick=()=>{selected=+el.dataset.id;draw();});}
+function bars(container,items){container.innerHTML=items.map(it=>
+'<div class="srow"><div class="n" style="'+(it.act?"font-weight:700;color:var(--navy)":"")+'">'+it.lab+'</div>'+
+'<div class="sbar"><i style="width:'+(it.v*100)+'%;background:'+it.col+'"></i>'+
+'<b style="'+(it.v>0.5?"color:#fff;right:auto;left:6px":"")+'">'+it.t+'</b></div></div>').join("");}
+const STRATA=[[0.5,"#b79b6a","0-0,5 m"],[1.5,"#9bbf6a","0,5-1,5 m"],[3,"#6fae5f","1,5-3 m"],[6,"#3f8f52","3-6 m"],[1e9,"#245f39",">6 m"]];
+function bandCol(z){for(const s of STRATA)if(z<s[0])return s[1];return "#245f39";}
+function tz(x,a,b,c,d){if(x<=a||x>=d)return 0;if(x<b)return(x-a)/(b-a);if(x<=c)return 1;return(d-x)/(d-c);}
+function mi(x,a,b){return x<=a?0:x>=b?1:(x-a)/(b-a);}
+function md(x,a,b){return x<=a?1:x>=b?0:(b-x)/(b-a);}
+const HPREF={Neuntoeter:z=>tz(z,0.8,1.5,3.0,4.0),Dorngrasmuecke:z=>tz(z,0.3,0.6,1.8,2.8),
+Goldammer:z=>Math.max(md(z,1.2,2.2),0.6*mi(z,4,7)),Fledermaus:z=>mi(z,3,6),Wildbienen:z=>md(z,1.0,2.2)};
+const BEN=[[0,[199,74,58]],[0.5,[233,182,74]],[1,[31,122,61]]];
+function scaleBenefit(v){return rmp(BEN,v);}
+function benefitCol(z){return mode==="HVI"?bandCol(z):scaleBenefit(HPREF[mode]?HPREF[mode](z):0.5);}
+let PW={pts:[],zmax:8,span:10};
+function setLegends(){["bandleg","bandlegBig"].forEach(function(lid){var bl=document.getElementById(lid);if(!bl)return;
+if(mode==="HVI"){bl.innerHTML=STRATA.map(function(sx){return '<span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:3px;vertical-align:-1px;background:'+sx[1]+'"></i>'+sx[2]+'</span>';}).join("");}
+else{var n2=(SPEC.find(function(x){return x[0]===mode;})||["",""])[1];bl.innerHTML='<span>Struktur fuer '+n2+':</span><span style="display:inline-block;width:90px;height:10px;border-radius:5px;background:linear-gradient(90deg,#c74a3a,#e9b64a,#1f7a3d)"></span><span>ungeeignet &rarr; geeignet</span>';}});}
+function drawSide(raw,has3){var cv=document.getElementById("profile");if(!cv)return;var ctx=cv.getContext("2d"),W=cv.width,H=cv.height;ctx.clearRect(0,0,W,H);if(!raw.length)return;
+var A=raw.map(function(p){return p[0];}),Z=raw.map(function(p){return has3?p[2]:p[1];});
+var amin=Math.min.apply(null,A),amax=Math.max.apply(null,A),zmax=Math.max(4,Math.max.apply(null,Z)),pad=22;
+ctx.strokeStyle="#e2e8df";for(var z=0;z<=zmax;z+=2){var y=H-pad-(z/zmax)*(H-2*pad);ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-4,y);ctx.stroke();}
+raw.forEach(function(p,i){var x=pad+((A[i]-amin)/((amax-amin)||1))*(W-pad-6),y=H-pad-(Z[i]/zmax)*(H-2*pad);ctx.fillStyle=benefitCol(Z[i]);ctx.globalAlpha=.8;ctx.fillRect(x,y,1.6,1.6);});ctx.globalAlpha=1;}
+function drawProfile(h){var nm=document.getElementById("pwname");
+if(nm)nm.textContent="- Hecke "+h.hedge_id+" - Typ "+h.hedge_type+" - "+(mode==="HVI"?"Farbe: Hoehenschicht (drehbar: ziehen)":"Farbe: Eignung fuer "+(SPEC.find(function(x){return x[0]===mode;})||["","?"])[1]+" (drehbar: ziehen)");
+var raw=(window.HEDGE_POINTS||{})[h.hedge_id]||[];var hint=document.getElementById("profhint");
+setLegends();
+if(!raw.length){PW.pts=[];if(hint)hint.style.display="block";drawSide(raw,false);return;}
+if(hint)hint.style.display="none";
+var has3=raw[0].length>2;
+var A=raw.map(function(p){return p[0];}),B=raw.map(function(p){return has3?p[1]:0;}),Z=raw.map(function(p){return has3?p[2]:p[1];});
+var amid=(Math.min.apply(null,A)+Math.max.apply(null,A))/2,bmid=(Math.min.apply(null,B)+Math.max.apply(null,B))/2;
+PW.pts=raw.map(function(p,i){return{a:A[i]-amid,b:B[i]-bmid,z:Z[i]};});
+PW.zmax=Math.max(4,Math.max.apply(null,Z));PW.span=Math.max(Math.max.apply(null,A)-Math.min.apply(null,A),4);
+drawSide(raw,has3);}
+function initBig(){var cv=document.getElementById("profileBig");if(!cv||cv._init)return;cv._init=1;
+var rot=0.6,drag=false,lx=0,auto=true;cv.style.cursor="grab";
+cv.addEventListener("mousedown",function(e){drag=true;lx=e.clientX;auto=false;cv.style.cursor="grabbing";});
+window.addEventListener("mouseup",function(){drag=false;cv.style.cursor="grab";});
+window.addEventListener("mousemove",function(e){if(drag){rot+=(e.clientX-lx)*0.012;lx=e.clientX;}});
+function render(){var ctx=cv.getContext("2d"),W=cv.width,H=cv.height;ctx.clearRect(0,0,W,H);
+if(!PW.pts.length){ctx.fillStyle="#9aa79a";ctx.font="14px sans-serif";ctx.fillText("Punktwolke: in RStudio export_points.R ausfuehren, dann neu laden",24,34);return;}
+var pad=34,zmax=PW.zmax,zscale=(H-2*pad)/zmax,scale=(W-2*pad)/PW.span,cx=W/2;
+ctx.strokeStyle="#e6ece3";ctx.fillStyle="#9aa79a";ctx.font="10px sans-serif";
+for(var z=0;z<=zmax;z+=2){var y=H-pad-z*zscale;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke();ctx.fillText(z+" m",6,y-2);}
+ctx.strokeStyle="#7a6b4d";ctx.beginPath();ctx.moveTo(pad,H-pad);ctx.lineTo(W-pad,H-pad);ctx.stroke();
+var cr=Math.cos(rot),sr=Math.sin(rot);
+var P=PW.pts.map(function(p){var dep=p.a*sr+p.b*cr;return{sx:cx+(p.a*cr-p.b*sr)*scale,sy:H-pad-p.z*zscale-dep*scale*0.22,dep:dep,z:p.z};});
+P.sort(function(u,v){return u.dep-v.dep;});
+P.forEach(function(p){ctx.fillStyle=benefitCol(p.z);ctx.globalAlpha=.85;ctx.fillRect(p.sx,p.sy,2.3,2.3);});ctx.globalAlpha=1;}
+(function loop(){if(auto)rot+=0.004;render();requestAnimationFrame(loop);})();}
+function drawDetail(){const h=D.hedges.find(x=>x.hedge_id===selected);
+const v=valFor(h);const pill=document.getElementById("selPill");
+pill.style.background=mode==="HVI"?scaleHVI(v):scaleSuit(v);
+pill.textContent=(mode==="HVI"?"HVI ":"Eignung ")+(v==null?"-":v.toFixed(2));
+document.getElementById("selName").textContent="Hecke "+h.hedge_id+" - Typ "+h.hedge_type;drawProfile(h);
+bars(document.getElementById("suit"),SPEC.map(([k,lab])=>{const val=num(h[k])||0;
+return{lab:lab,v:val,t:val.toFixed(2),col:scaleSuit(val),act:mode===k};}));
+document.getElementById("subs").innerHTML="<div style='font-size:11.5px;color:var(--muted);margin:6px 0 2px'>Subindizes</div>";
+
+const subDiv=document.createElement("div");document.getElementById("subs").appendChild(subDiv);
+bars(subDiv,[["Vertikale Komplexitaet","vertical_complexity"],["Volumen/Groesse","volume_size"],["Heterogenitaet","heterogeneity"]].map(([lab,k])=>{const val=num(h[k])||0;return{lab:lab,v:val,t:val.toFixed(2),col:scaleHVI(val),act:false};}));
+const M=[["FHD",h.fhd,2],["VCI",h.vci,2],["Schichten",h.n_layers,0],["Evenness",h.strata_evenness,2],
+["Unterw.-Offenh.",h.understory_openness,2],["Vert. Luecke",h.vertical_gap,2],
+["P95-Hoehe",h.h_p95,1],["Kronen-SD",h.canopy_sd,2],["Deckung",h.cover_frac,2],["HVI",h.HVI,2]];
+document.getElementById("mets").innerHTML=M.map(([n,v,dd])=>{const x=num(v);
+return "<div><span>"+n+"</span><b>"+(x==null?"-":x.toFixed(dd))+(n==="P95-Hoehe"?" m":"")+"</b></div>";}).join("");}
+function drawRank(){const hs=[...D.hedges].sort((a,b)=>num(b.HVI)-num(a.HVI));
+document.getElementById("hviRank").innerHTML=hs.map(h=>{const v=num(h.HVI);
+return '<div class="hvirow'+(h.hedge_id===selected?" sel":"")+'" data-id="'+h.hedge_id+'"><div class="id">Hecke '+h.hedge_id+'</div>'+
+'<div class="hvibar"><i style="width:'+(v*100)+'%;background:'+scaleHVI(v)+'"></i><b>'+v.toFixed(2)+'</b></div></div>';}).join("");
+document.querySelectorAll("#hviRank .hvirow").forEach(el=>el.onclick=()=>{selected=+el.dataset.id;draw();});}
+function drawHeat(){const hs=[...D.hedges].sort((a,b)=>num(b.HVI)-num(a.HVI));
+let head="<tr><th>Hecke</th>"+SPEC.map(s=>"<th>"+s[1]+"</th>").join("")+"<th>HVI</th></tr>";
+let body=hs.map(h=>{return '<tr'+(h.hedge_id===selected?' class="sel"':'')+'><td class="rowh" data-id="'+h.hedge_id+'">'+h.hedge_id+' ('+h.hedge_type+')</td>'+
+SPEC.map(([k])=>{const val=num(h[k])||0;const tc=val>0.55?"#fff":"#13291f";
+return '<td style="background:'+scaleSuit(val)+';color:'+tc+'">'+val.toFixed(2)+'</td>';}).join("")+
+'<td style="background:'+scaleHVI(num(h.HVI))+';color:#fff;font-weight:700">'+num(h.HVI).toFixed(2)+'</td></tr>';}).join("");
+const t=document.getElementById("heat");t.innerHTML=head+body;
+t.querySelectorAll("td.rowh").forEach(el=>el.onclick=()=>{selected=+el.dataset.id;draw();});}
+function draw(){var _sh=D.hedges.find(function(x){return x.hedge_id===selected;});if(zoomed&&_sh){var w=D.window;if(!(_sh.cx>=w.x&&_sh.cx<=w.x+w.size&&_sh.cy>=w.y&&_sh.cy<=w.y+w.size))zoomed=false;}document.querySelectorAll("#species button").forEach(b=>b.classList.toggle("active",b.dataset.k===mode));
+document.getElementById("legbar").style.background=mode==="HVI"
+?"linear-gradient(90deg,#eef3ec,#8fce9f,#2e6b4f,#133421)":"linear-gradient(90deg,#f4e79e,#c9de84,#7cc08a,#14532d)";
+document.getElementById("lo").textContent=mode==="HVI"?"einfach":"wenig geeignet";
+document.getElementById("hi").textContent=mode==="HVI"?"komplex":"gut geeignet";
+document.getElementById("maptitle").textContent=(zoomed?"Diverser Ausschnitt":"Ganze Flaeche")+" - "+(mode==="HVI"?"HVI":SPEC.find(s=>s[0]===mode)[1]);
+drawMap();drawDetail();drawRank();drawHeat();}
+document.getElementById("zoombtn").onclick=function(){zoomed=!zoomed;this.textContent=zoomed?"ganze Flaeche":"diverser Ausschnitt";draw();};
+draw();initBig();
+</script></body></html>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HVI – Beispielfläche: Heckeneignung nach Art</title>
+<style>
+  :root{
+    --navy:#1f3a2e;--green:#2e6b4f;--green2:#4a9d76;--bg:#eef1ea;--card:#fff;
+    --ink:#1d241f;--muted:#6a7269;--grid:#e2e8df;--field:#f6f3e7;--field2:#eef2e2;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.45}
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 18px 50px}
+  h1{font-size:22px;color:var(--navy);margin:0 0 3px}
+  .lead{color:var(--muted);font-size:13.5px;margin:0 0 14px}
+  .rule{height:3px;background:linear-gradient(90deg,var(--green),#8fce9f);border-radius:3px;margin:12px 0 18px}
+  .species{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .species button{border:1px solid var(--grid);background:#fff;color:var(--ink);
+    padding:8px 13px;border-radius:22px;font-size:13px;cursor:pointer;transition:.15s;font-weight:600}
+  .species button:hover{border-color:var(--green2)}
+  .species button.active{background:var(--green);color:#fff;border-color:var(--green)}
+  .species button.struct.active{background:var(--navy);border-color:var(--navy)}
+  .layout{display:grid;gap:18px}
+  @media(min-width:880px){.layout{grid-template-columns:1.35fr 1fr}}
+  .card{background:var(--card);border:1px solid var(--grid);border-radius:14px;padding:16px 18px;
+    box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .card h2{font-size:14px;margin:0 0 10px;color:var(--green)}
+  svg .field{fill:var(--field);stroke:#e4e0cc;stroke-width:.6}
+  svg .hedge{stroke-linecap:round;cursor:pointer;transition:stroke .3s}
+  svg .hedge.sel{stroke:#12241a}
+  svg .hcase{stroke:#cfd6cb;stroke-linecap:round;pointer-events:none}
+  .maphint{font-size:12px;color:var(--muted);margin-top:8px}
+  .legend{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--muted)}
+  .legbar{height:12px;width:180px;border-radius:6px;
+    background:linear-gradient(90deg,#e8e8e6,#e7c46a,#5fae74,#1f6b41)}
+  .legbar.hvi{background:linear-gradient(90deg,#eef3ec,#8fce9f,#2e6b4f,#173f2c)}
+  .selhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .selhead b{font-size:15px;color:var(--navy)}
+  .pill{font-size:11px;font-weight:700;border-radius:20px;padding:2px 9px;color:#fff}
+  canvas{width:100%;height:180px;border:1px solid var(--grid);border-radius:10px;background:linear-gradient(#f7faf5,#eef3ea);display:block}
+  .axis{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;margin-top:3px}
+  .suit{margin-top:12px}
+  .srow{display:flex;align-items:center;gap:9px;margin:6px 0}
+  .srow .n{flex:0 0 104px;font-size:12.5px;text-align:right}
+  .sbar{flex:1;height:18px;border-radius:6px;background:var(--grid);position:relative;overflow:hidden}
+  .sbar>i{position:absolute;left:0;top:0;bottom:0;border-radius:6px;transition:width .5s,background .3s}
+  .sbar>b{position:absolute;right:7px;top:0;bottom:0;display:flex;align-items:center;font-size:11px;font-weight:700}
+  .mets{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-top:12px;font-size:12px}
+  .mets div{display:flex;justify-content:space-between;border-bottom:1px dotted var(--grid);padding:2px 0}
+  .mets span{color:var(--muted)}
+  .mets b{color:var(--ink)}
+  .note{font-size:11.5px;color:var(--muted);margin-top:14px}
+  .band-leg{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--muted);margin-top:6px}
+  .band-leg i{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:-1px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Beispielfläche – welche Hecken passen zu welcher Art?</h1>
+  <p class="lead">Simulierte Heckenlandschaft (~520 × 345 m). Art wählen → Hecken werden nach Habitateignung eingefärbt.
+     Auf eine Hecke klicken → LiDAR-Höhenprofil und Kennwerte rechts.</p>
+  <div class="rule"></div>
+
+  <div class="species" id="species"></div>
+
+  <div class="layout">
+    <div class="card">
+      <h2 id="maptitle">Karte</h2>
+      <svg id="map" viewBox="0 0 520 345" style="width:100%;height:auto"></svg>
+      <div class="legend">
+        <span id="legLo">wenig geeignet</span>
+        <div class="legbar" id="legbar"></div>
+        <span id="legHi">gut geeignet</span>
+      </div>
+      <p class="maphint">Farbe = Eignung der Hecke für die gewählte Art. Dicke Umrandung = ausgewählte Hecke.</p>
+    </div>
+
+    <div class="card" id="detail">
+      <div class="selhead"><b id="selName">–</b><span class="pill" id="selPill"></span></div>
+      <div style="margin-top:10px">
+        <canvas id="profile" width="700" height="360"></canvas>
+        <div class="axis"><span>← Länge der Hecke →</span><span id="zmaxlab"></span></div>
+        <div class="band-leg" id="bandleg"></div>
+      </div>
+      <div class="suit" id="suit"></div>
+      <div class="mets" id="mets"></div>
+      <p class="note">Punktwolke ist simuliert und nach Höhenschicht eingefärbt. Aus dieser vertikalen
+        Verteilung werden FHD, Schichtung, Lückigkeit usw. berechnet – bei echten AHN-Daten liefert
+        <code>hvi_ahn_run()</code> dieselben Kennwerte aus der realen Rückstreuung.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ seeded RNG ============ */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(rng,m,s){let u=0,v=0;while(u===0)u=rng();while(v===0)v=rng();
+  return m+s*Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+
+/* ============ archetypes: layers [mean,sd,n], chmTop, chmRough, ndvi ============ */
+const ARCH={
+ geschoren:{layers:[[0.8,0.25,1400]],top:1.0,rough:0.15,ndvi:0.50,label:"geschoren, niedrig"},
+ strukturreich:{layers:[[0.3,0.15,380],[1.2,0.4,560],[2.5,0.6,560],[4.5,0.9,380]],top:4.8,rough:1.4,ndvi:0.60,label:"mehrschichtig strukturreich"},
+ baumreihe:{layers:[[7.5,1.5,1200]],top:8.0,rough:2.2,ndvi:0.65,label:"hohe Baumreihe"},
+ dornig:{layers:[[0.3,0.15,300],[1.8,0.5,850],[2.8,0.5,500]],top:2.6,rough:0.7,ndvi:0.55,label:"mitteldornig, offener Saum"},
+ verbuscht:{layers:[[0.4,0.2,460],[1.5,0.6,980]],top:2.2,rough:0.9,ndvi:0.55,label:"dicht verbuscht, mittel"},
+ luecke:{layers:[[0.3,0.2,180],[3.5,1.2,680]],top:4.0,rough:1.9,ndvi:0.50,label:"hoch & lückig"}
+};
+
+/* ============ hedges on the map ============ */
+const HEDGES=[
+ {id:1,name:"Nordreihe",arch:"baumreihe",pts:[[30,45],[240,42]]},
+ {id:2,name:"Nordsaum Ost",arch:"strukturreich",pts:[[240,42],[470,58]]},
+ {id:3,name:"Westhecke",arch:"dornig",pts:[[32,45],[38,300]]},
+ {id:4,name:"Mittelriegel",arch:"strukturreich",pts:[[38,182],[300,176]]},
+ {id:5,name:"Querhecke Nord",arch:"geschoren",pts:[[300,176],[300,44]]},
+ {id:6,name:"Osthang",arch:"dornig",pts:[[300,176],[470,205]]},
+ {id:7,name:"Südsaum West",arch:"geschoren",pts:[[38,300],[262,306]]},
+ {id:8,name:"Querhecke Süd",arch:"verbuscht",pts:[[262,306],[262,182]]},
+ {id:9,name:"Südreihe Ost",arch:"baumreihe",pts:[[262,306],[482,300]]},
+ {id:10,name:"Osthecke",arch:"strukturreich",pts:[[478,58],[485,300]]},
+ {id:11,name:"Diagonale",arch:"luecke",pts:[[120,130],[210,250]]}
+];
+const FIELDS=[
+ [[38,45],[300,45],[300,176],[38,182]],
+ [[300,45],[478,58],[470,176],[300,176]],
+ [[38,182],[262,182],[262,306],[38,300]],
+ [[262,182],[470,205],[482,300],[262,306]]
+];
+
+/* ============ metrics (Port aus hvi_metrics.R) ============ */
+const STRATA=[0,0.5,1.5,3.0,6.0,Infinity];
+function quantile(a,q){const s=[...a].sort((x,y)=>x-y);const p=(s.length-1)*q;
+  const lo=Math.floor(p),hi=Math.ceil(p);return s[lo]+(s[hi]-s[lo])*(p-lo);}
+function ladProfile(z,dz=0.5){z=z.filter(v=>v>=0.15);if(z.length<5)return[];
+  const zmax=Math.ceil(Math.max(...z)/dz)*dz;const breaks=[];for(let b=0;b<=zmax+1e-9;b+=dz)breaks.push(b);
+  const nAbove=breaks.map(b=>z.filter(v=>v>=b).length);const lad=[];
+  for(let i=0;i<nAbove.length-1;i++){let v=Math.log((nAbove[i]+1)/(nAbove[i+1]+1));lad.push(v>0?v:0);}return lad;}
+function fhd(lad){const p=lad.filter(v=>v>0);if(!p.length)return 0;const s=p.reduce((a,b)=>a+b,0);
+  return -p.reduce((a,v)=>{const pi=v/s;return a+pi*Math.log(pi);},0);}
+function vci(lad){const n=lad.length;if(n<2)return 0;return fhd(lad)/Math.log(n);}
+function strata(z){z=z.filter(v=>v>=0.15);if(!z.length)return{n:0,ev:0};
+  const cnt=[0,0,0,0,0];z.forEach(v=>{for(let i=0;i<5;i++)if(v>=STRATA[i]&&v<STRATA[i+1]){cnt[i]++;break;}});
+  const tot=cnt.reduce((a,b)=>a+b,0);const frac=cnt.map(c=>c/tot);
+  const n=frac.filter(f=>f>=0.02).length;const p=frac.filter(f=>f>0);
+  const H=p.length>1?-p.reduce((a,f)=>a+f*Math.log(f),0):0;const ev=p.length>1?H/Math.log(p.length):0;
+  return{n,ev};}
+function porosity(z,dz=0.5){z=z.filter(v=>v>=0.15);if(z.length<3)return{uo:0,vg:0};
+  const p95=quantile(z,0.95);const uo=z.filter(v=>v<1).length/z.length;
+  const nb=Math.ceil(p95/dz);let empty=0;for(let i=0;i<nb;i++){const lo=i*dz,hi=(i+1)*dz;
+    if(!z.some(v=>v>=lo&&v<hi))empty++;}return{uo,vg:nb?empty/nb:0};}
+function mean(a){return a.reduce((x,y)=>x+y,0)/a.length;}
+function sd(a){const m=mean(a);return Math.sqrt(a.reduce((x,y)=>x+(y-m)*(y-m),0)/(a.length-1));}
+
+function computeHedge(h){
+  const A=ARCH[h.arch];const rng=mulberry32(h.id*7919+13);
+  let z=[];A.layers.forEach(([m,s,n])=>{for(let i=0;i<n;i++)z.push(Math.max(0,gauss(rng,m,s)));});
+  const chm=[];for(let i=0;i<200;i++)chm.push(Math.max(0,gauss(rng,A.top,A.rough)));
+  const lad=ladProfile(z);const st=strata(z);const po=porosity(z);
+  const csd=sd(chm),cmean=mean(chm);
+  const m={fhd:fhd(lad),vci:vci(lad),n_layers:st.n,strata_evenness:st.ev,
+    understory_openness:po.uo,vertical_gap:po.vg,h_p95:quantile(z,0.95),
+    canopy_sd:csd,canopy_cv:csd/(cmean+1e-6),cover_frac:chm.filter(v=>v>=0.5).length/chm.length,ndvi:A.ndvi};
+  return{...h,archLabel:A.label,z:z.filter((_,i)=>i%3===0),metrics:m};
+}
+const DATA=HEDGES.map(computeHedge);
+
+/* ============ HVI (rescale across set) ============ */
+function rescaleMap(key){const vals=DATA.map(d=>d.metrics[key]);
+  const lo=quantile(vals,0.02),hi=quantile(vals,0.98);
+  return v=>hi===lo?0.5:Math.min(1,Math.max(0,(v-lo)/(hi-lo)));}
+const rs={};["fhd","n_layers","h_p95","canopy_sd","canopy_cv","vertical_gap","ndvi"].forEach(k=>rs[k]=rescaleMap(k));
+function hvi(d){const M=d.metrics;
+  const vc=mean([rs.fhd(M.fhd),M.vci,rs.n_layers(M.n_layers),M.strata_evenness]);
+  const vs=mean([rs.h_p95(M.h_p95),M.cover_frac]);
+  const het=mean([rs.canopy_sd(M.canopy_sd),rs.canopy_cv(M.canopy_cv),rs.vertical_gap(M.vertical_gap)]);
+  const cond=rs.ndvi(M.ndvi);const w=[0.50,0.15,0.25,0.10];
+  return {vc,vs,het,cond,HVI:vc*w[0]+vs*w[1]+het*w[2]+cond*w[3]};}
+DATA.forEach(d=>d.hvi=hvi(d));
+
+/* ============ species suitability (Fuzzy, wie species_requirements.csv) ============ */
+const SPEC=[
+ {key:"neuntoeter",name:"Neuntöter",req:[
+   ["h_p95","trapz",[0.5,1.5,3.0,4.5],1.0],["understory_openness","gauss",[0.30,0.18],0.8],
+   ["strata_evenness","mono_inc",[0.2,0.6],0.6],["fhd","mono_inc",[0.8,2.0],0.5]]},
+ {key:"dorngrasmuecke",name:"Dorngrasmücke",req:[
+   ["h_p95","trapz",[0.4,0.8,2.0,3.5],1.0],["strata_evenness","mono_inc",[0.2,0.6],0.6],
+   ["understory_openness","gauss",[0.30,0.20],0.5]]},
+ {key:"goldammer",name:"Goldammer",req:[
+   ["h_p95","trapz",[0.5,1.5,4.0,8.0],0.8],["understory_openness","mono_inc",[0.2,0.5],0.9],
+   ["n_layers","mono_inc",[1,3],0.5]]},
+ {key:"fledermaus",name:"Fledermaus",req:[
+   ["h_p95","mono_inc",[2.0,6.0],1.0],["vertical_gap","mono_dec",[0.2,0.6],0.7],
+   ["canopy_sd","gauss",[1.5,1.2],0.4]]},
+ {key:"wildbienen",name:"Wildbienen",req:[
+   ["understory_openness","mono_inc",[0.3,0.7],1.0],["ndvi","gauss",[0.55,0.18],0.6],
+   ["h_p95","mono_dec",[2.5,6.0],0.7],["strata_evenness","mono_inc",[0.2,0.6],0.5]]}
+];
+function memb(x,t,p){switch(t){
+  case"trapz":{const[a,b,c,d]=p;if(x<=a||x>=d)return 0;if(x<b)return(x-a)/(b-a);if(x<=c)return 1;return(d-x)/(d-c);}
+  case"gauss":return Math.exp(-((x-p[0])**2)/(2*p[1]**2));
+  case"mono_inc":{const[a,b]=p;return x<=a?0:x>=b?1:(x-a)/(b-a);}
+  case"mono_dec":{const[a,b]=p;return x<=a?1:x>=b?0:(b-x)/(b-a);}}}
+function suitability(M,sp){let ws=0,acc=0;sp.req.forEach(([k,t,p,w])=>{ws+=w;});
+  sp.req.forEach(([k,t,p,w])=>{const m=Math.max(memb(M[k],t,p),1e-6);acc+=(w/ws)*Math.log(m);});
+  return Math.exp(acc);}
+DATA.forEach(d=>{d.suit={};SPEC.forEach(sp=>d.suit[sp.key]=suitability(d.metrics,sp));});
+
+/* ============ colour scales ============ */
+function lerp(a,b,t){return a+(b-a)*t;}
+function hex(c){return c.map(v=>Math.round(v).toString(16).padStart(2,"0")).join("");}
+function scaleSuit(v){const stops=[[0,[232,232,230]],[0.35,[231,196,106]],[0.7,[95,174,116]],[1,[31,107,65]]];
+  v=Math.min(1,Math.max(0,v));for(let i=0;i<stops.length-1;i++){const[a,ca]=stops[i],[b,cb]=stops[i+1];
+    if(v<=b){const t=(v-a)/(b-a);return"#"+hex(ca.map((c,j)=>lerp(c,cb[j],t)));}}return"#1f6b41";}
+function scaleHVI(v){const stops=[[0,[238,243,236]],[0.4,[143,206,159]],[0.75,[46,107,79]],[1,[23,63,44]]];
+  v=Math.min(1,Math.max(0,v));for(let i=0;i<stops.length-1;i++){const[a,ca]=stops[i],[b,cb]=stops[i+1];
+    if(v<=b){const t=(v-a)/(b-a);return"#"+hex(ca.map((c,j)=>lerp(c,cb[j],t)));}}return"#173f2c";}
+
+/* ============ state + render ============ */
+let mode="neuntoeter";       // species key or "hvi"
+let selected=3;
+const bandCols=[["#b79b6a","0–0,5 m Kraut"],["#9bbf6a","0,5–1,5 m Niedrigstrauch"],
+  ["#6fae5f","1,5–3 m Mittelstrauch"],["#3f8f52","3–6 m Hochstrauch"],["#245f39",">6 m Baum"]];
+function bandColor(z){if(z<0.5)return bandCols[0][0];if(z<1.5)return bandCols[1][0];
+  if(z<3)return bandCols[2][0];if(z<6)return bandCols[3][0];return bandCols[4][0];}
+
+function colorFor(d){return mode==="hvi"?scaleHVI(d.hvi.HVI):scaleSuit(d.suit[mode]);}
+function valFor(d){return mode==="hvi"?d.hvi.HVI:d.suit[mode];}
+
+/* --- species buttons --- */
+const sc=document.getElementById("species");
+SPEC.forEach(sp=>{const b=document.createElement("button");b.textContent=sp.name;b.dataset.k=sp.key;
+  b.onclick=()=>{mode=sp.key;draw();};sc.appendChild(b);});
+const bh=document.createElement("button");bh.textContent="HVI (Struktur)";bh.className="struct";bh.dataset.k="hvi";
+bh.onclick=()=>{mode="hvi";draw();};sc.appendChild(bh);
+
+/* --- map --- */
+const map=document.getElementById("map");
+function drawMap(){
+  let s="";
+  FIELDS.forEach(f=>{s+=`<polygon class="field" points="${f.map(p=>p.join(",")).join(" ")}"/>`;});
+  DATA.forEach(d=>{const pts=d.pts.map(p=>p.join(",")).join(" ");
+    s+=`<polyline class="hcase" points="${pts}" fill="none" stroke-width="11"/>`;});
+  DATA.forEach(d=>{const pts=d.pts.map(p=>p.join(",")).join(" ");
+    s+=`<polyline class="hedge${d.id===selected?' sel':''}" data-id="${d.id}" points="${pts}" fill="none"
+        stroke="${colorFor(d)}" stroke-width="${d.id===selected?9:7}"><title>${d.name} – ${d.archLabel}</title></polyline>`;});
+  map.innerHTML=s;
+  map.querySelectorAll(".hedge").forEach(el=>el.onclick=()=>{selected=+el.dataset.id;draw();});
+}
+
+/* --- profile canvas --- */
+function drawProfile(d){
+  const cv=document.getElementById("profile");const ctx=cv.getContext("2d");
+  const W=cv.width,H=cv.height;ctx.clearRect(0,0,W,H);
+  const zmax=Math.max(10,Math.ceil(Math.max(...d.z)));const pad=24;
+  // height gridlines
+  ctx.strokeStyle="#dfe7db";ctx.fillStyle="#9aa79a";ctx.font="11px sans-serif";ctx.lineWidth=1;
+  for(let zz=0;zz<=zmax;zz+=2){const y=H-pad-(zz/zmax)*(H-2*pad);
+    ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-4,y);ctx.stroke();ctx.fillText(zz+" m",2,y-2);}
+  // ground
+  ctx.strokeStyle="#7a6b4d";ctx.beginPath();ctx.moveTo(pad,H-pad);ctx.lineTo(W-4,H-pad);ctx.stroke();
+  // points
+  const rng=mulberry32(d.id*104729+3);
+  d.z.forEach(z=>{const x=pad+rng()*(W-pad-8);const y=H-pad-(z/zmax)*(H-2*pad);
+    ctx.fillStyle=bandColor(z);ctx.globalAlpha=.72;ctx.fillRect(x,y,1.6,1.6);});
+  ctx.globalAlpha=1;
+  document.getElementById("zmaxlab").textContent="Höhe bis "+zmax+" m";
+}
+
+/* --- detail panel --- */
+function drawDetail(){
+  const d=DATA.find(x=>x.id===selected);
+  document.getElementById("selName").textContent=d.name+" · "+d.archLabel;
+  const v=valFor(d);const pill=document.getElementById("selPill");
+  pill.style.background=mode==="hvi"?scaleHVI(v):scaleSuit(v);
+  pill.textContent=(mode==="hvi"?"HVI ":"Eignung ")+v.toFixed(2);
+  drawProfile(d);
+  document.getElementById("bandleg").innerHTML=bandCols.map(b=>`<span><i style="background:${b[0]}"></i>${b[1]}</span>`).join("");
+  // suitability bars (all species), highlight active
+  const suitDiv=document.getElementById("suit");
+  suitDiv.innerHTML="<h2 style='font-size:13px;color:var(--green);margin:4px 0 6px'>Eignung dieser Hecke je Art</h2>"+
+   SPEC.map(sp=>{const val=d.suit[sp.key];const act=mode===sp.key;
+     return `<div class="srow"><div class="n" style="${act?'font-weight:700;color:var(--navy)':''}">${sp.name}</div>
+       <div class="sbar"><i style="width:${val*100}%;background:${scaleSuit(val)}"></i>
+       <b style="${val>0.5?'color:#fff;right:auto;left:7px':''}">${val.toFixed(2)}</b></div></div>`;}).join("");
+  // metrics
+  const M=d.metrics;const rows=[["FHD",M.fhd.toFixed(2)],["VCI",M.vci.toFixed(2)],
+    ["Schichten",M.n_layers],["Evenness",M.strata_evenness.toFixed(2)],
+    ["Unterw.-Offenh.",M.understory_openness.toFixed(2)],["Vert. Lücke",M.vertical_gap.toFixed(2)],
+    ["P95-Höhe",M.h_p95.toFixed(1)+" m"],["Kronen-SD",M.canopy_sd.toFixed(2)],
+    ["HVI",d.hvi.HVI.toFixed(2)]];
+  document.getElementById("mets").innerHTML=rows.map(r=>`<div><span>${r[0]}</span><b>${r[1]}</b></div>`).join("");
+}
+
+/* --- top-level --- */
+function draw(){
+  document.querySelectorAll(".species button").forEach(b=>b.classList.toggle("active",b.dataset.k===mode));
+  const legbar=document.getElementById("legbar");
+  legbar.className="legbar"+(mode==="hvi"?" hvi":"");
+  document.getElementById("legLo").textContent=mode==="hvi"?"einfach":"wenig geeignet";
+  document.getElementById("legHi").textContent=mode==="hvi"?"komplex":"gut geeignet";
+  document.getElementById("maptitle").textContent=mode==="hvi"
+    ?"Karte – nach HVI (Strukturkomplexität)":"Karte – Eignung für "+SPEC.find(s=>s.key===mode).name;
+  drawMap();drawDetail();
+}
+draw();
+</script>
+</body>
+</html>
