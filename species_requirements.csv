@@ -1,0 +1,18 @@
+species,metric,type,p1,p2,p3,p4,weight,note
+Neuntoeter (Lanius collurio),h_p95,trapz,0.5,1.5,3.0,4.5,1.0,Dornstraeucher 1.5-3 m als Nist-/Ansitzstruktur
+Neuntoeter (Lanius collurio),understory_openness,gauss,0.30,0.18,NA,NA,0.8,offene Krautsaeume zur Bodenjagd noetig
+Neuntoeter (Lanius collurio),strata_evenness,mono_inc,0.2,0.6,NA,NA,0.6,geschichtete Hecke erhoeht Nischenangebot
+Neuntoeter (Lanius collurio),fhd,mono_inc,0.8,2.0,NA,NA,0.5,vertikale Strukturvielfalt bevorzugt
+Dorngrasmuecke (Sylvia communis),h_p95,trapz,0.4,0.8,2.0,3.5,1.0,niedrige bis mittlere dichte Straucher
+Dorngrasmuecke (Sylvia communis),strata_evenness,mono_inc,0.2,0.6,NA,NA,0.6,Kraut- plus Strauchschicht
+Dorngrasmuecke (Sylvia communis),understory_openness,gauss,0.30,0.20,NA,NA,0.5,halboffener Saum
+Goldammer (Emberiza citrinella),h_p95,trapz,0.5,1.5,4.0,8.0,0.8,Hecke mit einzelnen hohen Singwarten
+Goldammer (Emberiza citrinella),understory_openness,mono_inc,0.2,0.5,NA,NA,0.9,Krautschicht/Saum als Nahrungshabitat
+Goldammer (Emberiza citrinella),n_layers,mono_inc,1,3,NA,NA,0.5,vielschichtige Hecken bevorzugt
+Fledermaus-Leitstruktur (Myotis/Plecotus),h_p95,mono_inc,2.0,6.0,NA,NA,1.0,hohe durchgehende Hecken als Leitlinie
+Fledermaus-Leitstruktur (Myotis/Plecotus),vertical_gap,mono_dec,0.2,0.6,NA,NA,0.7,wenige Luecken = ununterbrochene Leitfunktion
+Fledermaus-Leitstruktur (Myotis/Plecotus),canopy_sd,gauss,1.5,1.2,NA,NA,0.4,strukturierte Kante erhoeht Insektenangebot
+Wildbienen/Bestaeuber (Saumgilde),understory_openness,mono_inc,0.3,0.7,NA,NA,1.0,besonnter offener Krautsaum
+Wildbienen/Bestaeuber (Saumgilde),ndvi,gauss,0.55,0.18,NA,NA,0.6,vitaler bluehfaehiger Mantel-/Saumbereich
+Wildbienen/Bestaeuber (Saumgilde),h_p95,mono_dec,2.5,6.0,NA,NA,0.7,niedrige Struktur haelt Saum besonnt
+Wildbienen/Bestaeuber (Saumgilde),strata_evenness,mono_inc,0.2,0.6,NA,NA,0.5,Mantel-Kern-Gradient mit Krautschicht
