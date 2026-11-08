@@ -1,6 +1,6 @@
 # Hedge Vertical Index (HVI)
 
-Zusammengesetzter LiDAR-Strukturindex zur ganzheitlichen Beschreibung,
+Zusammengesetzter LiDAR-Strukturindex zur Beschreibung,
 Habitat-Klassifikation und artspezifischen Bewertung von Hecken.
 
 ## Inhalt
